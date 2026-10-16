@@ -1,0 +1,22 @@
+[Unit]
+Description=Native RAK LoRa Bridge
+After=network.target rnsd.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/home/brevus/RAK2Reticulum
+
+# Hardware reset sequence on GPIO 25
+ExecStartPre=/usr/bin/pinctrl set 25 op dh
+ExecStartPre=/bin/sleep 0.2
+ExecStartPre=/usr/bin/pinctrl set 25 op dl
+ExecStartPre=/bin/sleep 0.2
+
+# Main Executable
+ExecStart=/home/brevus/RAK2Reticulum/target/release/rns-rak-native
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

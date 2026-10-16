@@ -27,14 +27,13 @@ fn main() {
         rxrf_conf0.freq_hz = {{FREQ_HZ}}; 
         rxrf_conf0.type_ = lgw_radio_type_t_LGW_RADIO_TYPE_SX1250;
         rxrf_conf0.tx_enable = true;
-        rxrf_conf0.single_input_mode = true; // Required for RAK Hat routing
         if lgw_rxrf_setconf(0, &mut rxrf_conf0) != 0 { panic!("Radio 0 config failed!"); }
 
         let mut rxrf_conf1: lgw_conf_rxrf_s = std::mem::zeroed();
         rxrf_conf1.enable = false;
         lgw_rxrf_setconf(1, &mut rxrf_conf1);
 
-        // --- DEMODULATOR CONFIGURATION ---
+        // --- DEMODULATOR (IF CHANNEL) CONFIGURATION ---
         for i in 0..8 {
             let mut if_conf: lgw_conf_rxif_s = std::mem::zeroed();
             if_conf.enable = false;
