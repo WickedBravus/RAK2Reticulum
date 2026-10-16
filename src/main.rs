@@ -1,5 +1,4 @@
 #![allow(non_upper_case_globals, non_camel_case_types, non_snake_case, dead_code)]
-
 use std::net::UdpSocket;
 use std::thread;
 use std::time::Duration;
@@ -12,7 +11,7 @@ fn main() {
         board_conf.lorawan_public = false;
         board_conf.clksrc = 0;
         board_conf.full_duplex = false;
-        board_conf.com_type = 0; // LGW_COM_SPI
+        board_conf.com_type = 0;
         
         let path = b"/dev/spidev0.0\0";
         for (i, &b) in path.iter().enumerate() {
@@ -21,19 +20,17 @@ fn main() {
         
         if lgw_board_setconf(&mut board_conf) != 0 { panic!("Board config failed!"); }
 
-        // --- RADIO FRONT-END CONFIGURATION ---
         let mut rxrf_conf0: lgw_conf_rxrf_s = std::mem::zeroed();
         rxrf_conf0.enable = true;
-        rxrf_conf0.freq_hz = {{FREQ_HZ}}; 
+        rxrf_conf0.freq_hz = 869525000; 
         rxrf_conf0.type_ = lgw_radio_type_t_LGW_RADIO_TYPE_SX1250;
         rxrf_conf0.tx_enable = true;
-        if lgw_rxrf_setconf(0, &mut rxrf_conf0) != 0 { panic!("Radio 0 config failed!"); }
+        lgw_rxrf_setconf(0, &mut rxrf_conf0);
 
         let mut rxrf_conf1: lgw_conf_rxrf_s = std::mem::zeroed();
         rxrf_conf1.enable = false;
         lgw_rxrf_setconf(1, &mut rxrf_conf1);
 
-        // --- DEMODULATOR (IF CHANNEL) CONFIGURATION ---
         for i in 0..8 {
             let mut if_conf: lgw_conf_rxif_s = std::mem::zeroed();
             if_conf.enable = false;
@@ -44,10 +41,10 @@ fn main() {
         if8_conf.enable = true;
         if8_conf.rf_chain = 0;       
         if8_conf.freq_hz = 0;        
-        if8_conf.bandwidth = {{BW_VAL}};
-        if8_conf.datarate = {{SF_VAL}};
+        if8_conf.bandwidth = 5;
+        if8_conf.datarate = 8;
         if8_conf.implicit_hdr = false; 
-        if lgw_rxif_setconf(8, &mut if8_conf) != 0 { panic!("IF8 config failed!"); }
+        lgw_rxif_setconf(8, &mut if8_conf);
 
         if lgw_start() != 0 { panic!("SX1302 start failed!"); }
         
@@ -62,7 +59,6 @@ fn main() {
         let mut rx_packets: [lgw_pkt_rx_s; 16] = std::mem::zeroed();
 
         loop {
-            // RX LOOP
             let num_packets = lgw_receive(16, rx_packets.as_mut_ptr());
             if num_packets > 0 {
                 for i in 0..num_packets as usize {
@@ -80,36 +76,33 @@ fn main() {
                 }
             }
 
-            // TX LOOP
             let mut buf = [0u8; 500];
             if let Ok((size, _)) = socket.recv_from(&mut buf) {
                 if size > 255 {
-                    println!("[WARN] Dropped oversized TX packet from Reticulum: {} bytes (LoRa Max: 255)", size);
+                    println!("[WARN] Dropped oversized TX packet from Reticulum: {} bytes", size);
                 } else {
                     let mut tx_pkt: lgw_pkt_tx_s = std::mem::zeroed();
-                    tx_pkt.freq_hz = {{FREQ_HZ}}; 
+                    tx_pkt.freq_hz = 869525000; 
                     tx_pkt.tx_mode = 0;           
                     tx_pkt.rf_power = 27;         
                     tx_pkt.modulation = 0x10;     
-                    tx_pkt.bandwidth = {{BW_VAL}};
-                    tx_pkt.datarate = {{SF_VAL}};
-                    tx_pkt.coderate = {{CR_VAL}};
+                    tx_pkt.bandwidth = 5;
+                    tx_pkt.datarate = 8;
+                    tx_pkt.coderate = 1;
                     tx_pkt.preamble = 8;
                     tx_pkt.size = size as u16;
                     tx_pkt.payload[..size].copy_from_slice(&buf[..size]);
                     
-                    let tx_payload_slice = &buf[..size];
-                    let hex_payload: String = tx_payload_slice.iter().map(|b| format!("{:02x}", b)).collect();
-
                     if lgw_send(&mut tx_pkt) == 0 {
+                        let tx_payload_slice = &buf[..size];
+                        let hex_payload: String = tx_payload_slice.iter().map(|b| format!("{:02x}", b)).collect();
                         println!("[TX] Len: {} bytes", size);
                         println!("    => Payload: {}", hex_payload);
                     } else {
-                        println!("[ERR] Transmission Failed");
+                        println!("[ERR] TX Failed");
                     }
                 }
             }
-            
             thread::sleep(Duration::from_millis(5));
         }
     }
