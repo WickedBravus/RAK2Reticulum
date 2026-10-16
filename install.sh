@@ -26,6 +26,14 @@ sed -e "s/{{FREQ_HZ}}/${FREQ_HZ}/g" \
     -e "s/{{CR_VAL}}/${CR_IN}/g" \
     src/main.rs.template > src/main.rs
 
+echo "[+] Disabling conflicting factory LoRa services to free the SPI bus..."
+sudo systemctl stop ttn-gateway 2>/dev/null || true
+sudo systemctl disable ttn-gateway 2>/dev/null || true
+sudo systemctl stop chirpstack-gateway-bridge 2>/dev/null || true
+sudo systemctl disable chirpstack-gateway-bridge 2>/dev/null || true
+sudo systemctl stop lora_pkt_fwd 2>/dev/null || true
+sudo systemctl disable lora_pkt_fwd 2>/dev/null || true
+
 echo "[+] Installing Dependencies and Rust..."
 sudo apt update && sudo apt install -y build-essential clang libclang-dev bc pinctrl
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
