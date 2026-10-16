@@ -49,7 +49,7 @@ Execute the installation wizard. It will install Rust, prompt you for your netwo
 ./install.sh
 ```
 **During setup, you will be prompted for:**
-* **Frequency:** Standard mesh frequency in MHz (e.g., `869.525` for Europe, `915.0` for US).
+* **Frequency:** Standard mesh frequency in MHz. Check what your neighbors are using by visiting https://rmap.world/ 
 * **Bandwidth:** Select `125`, `250`, or `500` kHz.
 * **Spreading Factor:** Select `7` through `12`.
 * **Coding Rate:** Typically `1` (which maps to 4/5).
