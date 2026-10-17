@@ -16,6 +16,7 @@
     forward_ip = 127.0.0.1
     forward_port = 4242
     mtu = 255
+    bitrate = 6250
 
   # Accepts incoming TCP connections from iPhones/mobile apps on the local network
   [[iPhoneGateway]]
@@ -30,4 +31,5 @@
     enabled = no
     target_host = rns.stoppedcold.com
     target_port = 4242
+    mode = boundary
 
