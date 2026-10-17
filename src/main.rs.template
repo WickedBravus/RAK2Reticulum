@@ -56,9 +56,7 @@ fn main() {
         println!("[+] RAK2Reticulum NATIVE BRIDGE ONLINE");
         println!("==================================================");
 
-        //let mut rx_packets: [lgw_pkt_rx_s; 16] = std::mem::zeroed();
         // Allocate 32 on the heap to create a massive memory crumple zone.
-        // This prevents C-side overruns from touching the Rust stack.
         let mut rx_packets = vec![std::mem::zeroed::<lgw_pkt_rx_s>(); 32];
         loop {
             let num_packets = lgw_receive(16, rx_packets.as_mut_ptr());
@@ -83,7 +81,6 @@ fn main() {
                 if size > 255 {
                     println!("[WARN] Dropped oversized TX packet from Reticulum: {} bytes", size);
                 } else {
-                    //let mut tx_pkt: lgw_pkt_tx_s = std::mem::zeroed();
                     let mut tx_pkt = Box::new(std::mem::zeroed::<lgw_pkt_tx_s>());
                     tx_pkt.freq_hz = {{FREQ_HZ}}; 
                     tx_pkt.tx_mode = 0;           
@@ -101,6 +98,13 @@ fn main() {
                         let hex_payload: String = tx_payload_slice.iter().map(|b| format!("{:02x}", b)).collect();
                         println!("[TX] Len: {} bytes", size);
                         println!("    => Payload: {}", hex_payload);
+                        
+                        // --- THE FIX ---
+                        // Dynamic ToA Hardware Lock: Prevent libloragw from segfaulting
+                        // by locking the thread until the hardware finishes transmitting.
+                        // Formula: ~3ms per byte + 50ms base delay
+                        let delay_ms = (size as u64 * 3) + 50;
+                        thread::sleep(Duration::from_millis(delay_ms));
                     } else {
                         println!("[ERR] TX Failed");
                     }
