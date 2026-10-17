@@ -56,8 +56,10 @@ fn main() {
         println!("[+] RAK2Reticulum NATIVE BRIDGE ONLINE");
         println!("==================================================");
 
-        let mut rx_packets: [lgw_pkt_rx_s; 16] = std::mem::zeroed();
-
+        //let mut rx_packets: [lgw_pkt_rx_s; 16] = std::mem::zeroed();
+	// Allocate 32 on the heap to create a massive memory crumple zone.
+	// This prevents C-side overruns from touching the Rust stack.
+	let mut rx_packets = vec![std::mem::zeroed::<lgw_pkt_rx_s>(); 32];
         loop {
             let num_packets = lgw_receive(16, rx_packets.as_mut_ptr());
             if num_packets > 0 {
@@ -81,8 +83,9 @@ fn main() {
                 if size > 255 {
                     println!("[WARN] Dropped oversized TX packet from Reticulum: {} bytes", size);
                 } else {
-                    let mut tx_pkt: lgw_pkt_tx_s = std::mem::zeroed();
-                    tx_pkt.freq_hz = 869525000; 
+                    //let mut tx_pkt: lgw_pkt_tx_s = std::mem::zeroed();
+                    let mut tx_pkt = Box::new(std::mem::zeroed::<lgw_pkt_tx_s>());
+		    tx_pkt.freq_hz = 869525000; 
                     tx_pkt.tx_mode = 0;           
                     tx_pkt.rf_power = 27;         
                     tx_pkt.modulation = 0x10;     
@@ -93,7 +96,7 @@ fn main() {
                     tx_pkt.size = size as u16;
                     tx_pkt.payload[..size].copy_from_slice(&buf[..size]);
                     
-                    if lgw_send(&mut tx_pkt) == 0 {
+                    if lgw_send(&mut *tx_pkt) == 0 {
                         let tx_payload_slice = &buf[..size];
                         let hex_payload: String = tx_payload_slice.iter().map(|b| format!("{:02x}", b)).collect();
                         println!("[TX] Len: {} bytes", size);
