@@ -22,7 +22,7 @@ fn main() {
 
         let mut rxrf_conf0: lgw_conf_rxrf_s = std::mem::zeroed();
         rxrf_conf0.enable = true;
-        rxrf_conf0.freq_hz = 869525000; 
+        rxrf_conf0.freq_hz = {{FREQ_HZ}}; 
         rxrf_conf0.type_ = lgw_radio_type_t_LGW_RADIO_TYPE_SX1250;
         rxrf_conf0.tx_enable = true;
         lgw_rxrf_setconf(0, &mut rxrf_conf0);
@@ -41,8 +41,8 @@ fn main() {
         if8_conf.enable = true;
         if8_conf.rf_chain = 0;       
         if8_conf.freq_hz = 0;        
-        if8_conf.bandwidth = 5;
-        if8_conf.datarate = 8;
+        if8_conf.bandwidth = {{BW_VAL}};
+        if8_conf.datarate = {{SF_VAL}};
         if8_conf.implicit_hdr = false; 
         lgw_rxif_setconf(8, &mut if8_conf);
 
@@ -57,9 +57,9 @@ fn main() {
         println!("==================================================");
 
         //let mut rx_packets: [lgw_pkt_rx_s; 16] = std::mem::zeroed();
-	// Allocate 32 on the heap to create a massive memory crumple zone.
-	// This prevents C-side overruns from touching the Rust stack.
-	let mut rx_packets = vec![std::mem::zeroed::<lgw_pkt_rx_s>(); 32];
+        // Allocate 32 on the heap to create a massive memory crumple zone.
+        // This prevents C-side overruns from touching the Rust stack.
+        let mut rx_packets = vec![std::mem::zeroed::<lgw_pkt_rx_s>(); 32];
         loop {
             let num_packets = lgw_receive(16, rx_packets.as_mut_ptr());
             if num_packets > 0 {
@@ -85,13 +85,13 @@ fn main() {
                 } else {
                     //let mut tx_pkt: lgw_pkt_tx_s = std::mem::zeroed();
                     let mut tx_pkt = Box::new(std::mem::zeroed::<lgw_pkt_tx_s>());
-		    tx_pkt.freq_hz = 869525000; 
+                    tx_pkt.freq_hz = {{FREQ_HZ}}; 
                     tx_pkt.tx_mode = 0;           
                     tx_pkt.rf_power = 27;         
                     tx_pkt.modulation = 0x10;     
-                    tx_pkt.bandwidth = 5;
-                    tx_pkt.datarate = 8;
-                    tx_pkt.coderate = 1;
+                    tx_pkt.bandwidth = {{BW_VAL}};
+                    tx_pkt.datarate = {{SF_VAL}};
+                    tx_pkt.coderate = {{CR_VAL}};
                     tx_pkt.preamble = 8;
                     tx_pkt.size = size as u16;
                     tx_pkt.payload[..size].copy_from_slice(&buf[..size]);
