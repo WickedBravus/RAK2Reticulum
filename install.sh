@@ -17,7 +17,7 @@ sudo systemctl stop lora_pkt_fwd 2>/dev/null || true
 sudo systemctl disable lora_pkt_fwd 2>/dev/null || true
 
 echo "[+] Installing Dependencies and Rust..."
-sudo apt update && sudo apt install -y build-essential clang libclang-dev bc pinctrl
+sudo apt update && sudo apt install -y build-essential clang libclang-dev bc
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 source $HOME/.cargo/env
 
