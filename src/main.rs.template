@@ -78,7 +78,10 @@ fn main() {
 
             let mut buf = [0u8; 500];
             if let Ok((size, _)) = socket.recv_from(&mut buf) {
-                if size > 255 {
+                // --- NEW FIX: Ignore empty zero-byte probe packets ---
+                if size == 0 {
+                    // Do nothing, let it loop
+                } else if size > 255 {
                     println!("[WARN] Dropped oversized TX packet from Reticulum: {} bytes", size);
                 } else {
                     let mut tx_pkt = Box::new(std::mem::zeroed::<lgw_pkt_tx_s>());
@@ -99,14 +102,13 @@ fn main() {
                         println!("[TX] Len: {} bytes", size);
                         println!("    => Payload: {}", hex_payload);
                         
-                        // --- THE FIX ---
-                        // Dynamic ToA Hardware Lock: Prevent libloragw from segfaulting
-                        // by locking the thread until the hardware finishes transmitting.
-                        // Formula: ~3ms per byte + 50ms base delay
+                        // Dynamic ToA Hardware Lock
                         let delay_ms = (size as u64 * 3) + 50;
                         thread::sleep(Duration::from_millis(delay_ms));
                     } else {
                         println!("[ERR] TX Failed");
+                        // --- NEW FIX: Cooldown backoff on hardware failure ---
+                        thread::sleep(Duration::from_millis(200));
                     }
                 }
             }
