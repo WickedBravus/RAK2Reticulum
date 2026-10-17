@@ -2,7 +2,9 @@
 
 **Native Rust LoRa Bridge for Reticulum Network (SX1302 / SX1250)**
 
-RAK2Reticulum is a lightweight, pure-Rust native bridge designed to directly interface industrial RAKwireless LoRa Base Stations (I used RAK Hotspot V2.0 Indoor with a fresh Pi OS Debian 13 Trixie install) with the [Reticulum Network](https://reticulum.network/). 
+RAK2Reticulum is a lightweight, pure-Rust native bridge designed to directly interface industrial RAKwireless LoRa Base Stations with the [Reticulum Network](https://reticulum.network/). 
+
+I used RAK Hotspot V2.0 Indoor with a fresh Pi OS Debian 13 Trixie install, my goal was to repurpose a capable piece of hardware that was sitting and collecting dust into something meaningful for the RF community.
 
 By bypassing traditional, bloated LoRaWAN packet forwarders and bridging natively via UDP, this software transforms standard Raspberry Pi + RAK HAT setups into high-power, high-bandwidth Reticulum mesh routers capable of coordinating city-wide infrastructure.
 
