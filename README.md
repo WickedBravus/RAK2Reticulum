@@ -86,12 +86,7 @@ To turn your Base Station into a fully routing Mesh Node, replace the contents o
     listen_ip = 0.0.0.0
     listen_port = 4244
 
-  # 3. Global Mesh Connection (Optional/Testnet)
-  [[Global_Testnet]]
-    type = TCPClientInterface
-    enabled = yes
-    target_host = dublin.connect.reticulum.network
-    target_port = 4965
+
 ```
 
 Restart your Reticulum daemon (`sudo systemctl restart rnsd` or run `rnsd` directly), and your Base Station will instantly become an active transponder on the mesh.
