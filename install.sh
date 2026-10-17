@@ -5,10 +5,13 @@ echo "================================================="
 echo "   RAK2Reticulum Base Station Installer"
 echo "================================================="
 
-echo "[+] Stopping any active bridge services to prevent restart errors..."
+echo "[+] Stopping any active bridge services..."
 sudo systemctl stop lora-bridge 2>/dev/null || true
 
-echo "[+] Disabling conflicting factory LoRa services to free the SPI bus..."
+echo "[+] Enabling Hardware SPI Interface..."
+sudo raspi-config nonint do_spi 0
+
+echo "[+] Disabling conflicting factory LoRa services..."
 sudo systemctl stop ttn-gateway 2>/dev/null || true
 sudo systemctl disable ttn-gateway 2>/dev/null || true
 sudo systemctl stop chirpstack-gateway-bridge 2>/dev/null || true
@@ -24,7 +27,7 @@ source $HOME/.cargo/env
 echo "[+] Compiling Native Bridge (This takes a few minutes)..."
 cargo build --release
 
-echo "[+] Generating Systemd Service with GPIO 25 Reset..."
+echo "[+] Generating Systemd Service with Universal Reset (GPIO 17 & 25)..."
 cat << SVC_EOF | sudo tee /etc/systemd/system/lora-bridge.service > /dev/null
 [Unit]
 Description=Native RAK LoRa Bridge
@@ -35,9 +38,11 @@ Type=simple
 User=root
 WorkingDirectory=$PWD
 
-# Hardware reset sequence on GPIO 25
+# Universal Hardware reset sequence (Covers both RAK hardware variants)
+ExecStartPre=/usr/bin/pinctrl set 17 op dh
 ExecStartPre=/usr/bin/pinctrl set 25 op dh
 ExecStartPre=/bin/sleep 0.2
+ExecStartPre=/usr/bin/pinctrl set 17 op dl
 ExecStartPre=/usr/bin/pinctrl set 25 op dl
 ExecStartPre=/bin/sleep 0.2
 
