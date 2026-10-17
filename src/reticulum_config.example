@@ -28,7 +28,7 @@
   # Connects this node to the global Reticulum Testnet routing hub, change no to yes to see your RAK miner transmitting global packets in LoRa
   [[RNS Testnet StoppedCold]]
     type = TCPClientInterface
-    enabled = no
+    enabled = yes
     target_host = rns.stoppedcold.com
     target_port = 4242
     mode = boundary
