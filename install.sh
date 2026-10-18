@@ -76,6 +76,7 @@ make clean || true
 make
 
 #############
+
 #echo "[+] Applying Patch 1: Injecting missing tinymt32 object..."
 #TINY_SRC_DIR=$(dirname $(find "$REPO_DIR/sx1302_hal" -name "tinymt32.c" | head -n 1))
 #HEADER_DIR=$(dirname $(find "$REPO_DIR/sx1302_hal" -name "tinymt32.h" | head -n 1))
@@ -83,6 +84,16 @@ make
 #cd "$TINY_SRC_DIR"
 #gcc -I "$HEADER_DIR" -c tinymt32.c -o tinymt32.o
 #ar rs "$REPO_DIR/sx1302_hal/libloragw/libloragw.a" tinymt32.o
+
+#echo "[+] Applying Patch 1: Injecting missing tinymt32 object..."
+#TINY_SRC_DIR=$(dirname $(find "$REPO_DIR/sx1302_hal" -name "tinymt32.c" | head -n 1))
+#HEADER_DIR=$(dirname $(find "$REPO_DIR/sx1302_hal" -name "tinymt32.h" | head -n 1))
+
+#cd "$TINY_SRC_DIR"
+#gcc -I "$HEADER_DIR" -c tinymt32.c -o tinymt32.o
+#ar rs "$REPO_DIR/sx1302_hal/libloragw/libloragw.a" tinymt32.o
+
+
 
 echo "[+] Applying Patch 1: Injecting missing tinymt32 object..."
 
@@ -127,13 +138,8 @@ ar rs "$LIB_PATH" "$TINY_SRC_DIR/tinymt32.o" || {
 echo "[+] tinymt32 object successfully injected into libloragw.a"
 #############
 
-echo "[+] Applying Patch 1: Injecting missing tinymt32 object..."
-TINY_SRC_DIR=$(dirname $(find "$REPO_DIR/sx1302_hal" -name "tinymt32.c" | head -n 1))
-HEADER_DIR=$(dirname $(find "$REPO_DIR/sx1302_hal" -name "tinymt32.h" | head -n 1))
 
-cd "$TINY_SRC_DIR"
-gcc -I "$HEADER_DIR" -c tinymt32.c -o tinymt32.o
-ar rs "$REPO_DIR/sx1302_hal/libloragw/libloragw.a" tinymt32.o
+
 echo "[+] Applying Patch 2: STTS751 hardware spoof & idle segfault guard..."
 cd "$REPO_DIR/sx1302_hal/libloragw"
 cat << 'TEMP_EOF' > fake_temp.c
