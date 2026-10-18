@@ -42,6 +42,7 @@ sudo raspi-config
 ### 2. Clone the Repository
 Download the source code to your Raspberry Pi:
 ```bash
+cd ~
 git clone https://github.com/WickedBravus/RAK2Reticulum.git
 cd RAK2Reticulum
 ```
@@ -49,6 +50,7 @@ cd RAK2Reticulum
 ### 3. Run the Automated Installer
 Execute the installation wizard. It will install Rust, prompt you for your network's physical layer parameters, compile the bridge, and set it up as a background service.
 ```bash
+chmod +x install.sh
 ./install.sh
 ```
 **During setup, you will be prompted for:**
@@ -62,14 +64,24 @@ Once installed, the Rust bridge will actively listen on UDP port `4242` and forw
 
 To turn your Base Station into a fully routing Mesh Node, replace the contents of your Reticulum configuration file (`~/.reticulum/config`) with the following topology. This enables Transport mode, connects the physical LoRa bridge, opens a local gateway for mobile devices (like iPhones), and connects you to the Global Testnet:
 
+nano ~/.reticulum/config
+
 ```ini
 [reticulum]
+  # Enables this node to route traffic for other nodes in the Reticulum network.
+  # Keep enabled to contribute to your local mesh network.
   enable_transport = True
+
+  # Allows multiple programs to share a Reticulum instance.
   share_instance = Yes
-  instance_name = RAK_Base_Station
+
+  # Identifies the shared Reticulum instance.
+  instance_name = default
 
 [interfaces]
-  # 1. The Native RAK Hardware Bridge
+
+  # Link to the local RAK2Reticulum Rust Bridge
+  # STRICT 255 MTU REQUIRED FOR PHYSICAL LORA LIMITS
   [[RustLoRaBridge]]
     type = UDPInterface
     interface_enabled = True
@@ -78,14 +90,23 @@ To turn your Base Station into a fully routing Mesh Node, replace the contents o
     forward_ip = 127.0.0.1
     forward_port = 4242
     mtu = 255
+    bitrate = 6250
 
-  # 2. Local Wi-Fi Gateway for Phones/Laptops
+  # Accepts incoming TCP connections from iPhones/mobile apps on the local network
   [[iPhoneGateway]]
     type = TCPServerInterface
     interface_enabled = True
     listen_ip = 0.0.0.0
     listen_port = 4244
 
+  # Connects this node to the global Reticulum Testnet routing hub, optional, set to True for live transmission demonstration purposes
+  [[RNS Testnet StoppedCold]]
+    type = TCPClientInterface
+    enabled = yes
+    interface_enabled = True
+    target_host = rns.stoppedcold.com
+    target_port = 4242
+    mode = boundary
 
 ```
 
@@ -113,8 +134,12 @@ sudo systemctl status lora-bridge
 ```
 
 ---
+## SX1302 HAL Compatibility Fix
+The RAK Indoor Miner 2.0 does not include the STTS751 temperature sensor expected by parts of the standard Semtech SX1302 HAL. This can cause initialization failures or segmentation faults. Our installer patches the HAL to simulate a temperature reading and provide basic pointer checks. It also compiles and injects the missing tinymt32.o object into libloragw.a to resolve a build dependency. The modified HAL is stored in this repository and rebuilt during installation.
 
 ## ⚠️ CRITICAL SAFETY WARNING
 **NEVER power on your Raspberry Pi and RAK HAT without an antenna firmly attached.** 
 
 Because this bridge is capable of driving the hardware at a full **27 dBm** of output power, transmitting without an attached antenna will cause the RF energy to reflect back into the circuit board, which will permanently destroy the SX1250 amplifiers in milliseconds.
+
+
