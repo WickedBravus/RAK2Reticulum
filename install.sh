@@ -19,7 +19,9 @@ read -p "Enter Spreading Factor (7, 8, 9, 10, 11, 12): " SF_IN
 read -p "Enter Coding Rate (type 1 for 4/5): " CR_IN
 
 # Format parameters for Rust injection
-FREQ_HZ=$(echo "$FREQ_IN * 1000000" | bc | cut -d. -f1)
+#FREQ_HZ=$(echo "$FREQ_IN * 1000000" | bc | cut -d. -f1)
+# Format parameters for Rust injection using awk (no external package required)
+FREQ_HZ=$(awk "BEGIN {print int($FREQ_IN * 1000000)}")
 
 case $BW_IN in
     125) BW_VAL=4 ;;
