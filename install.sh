@@ -51,6 +51,8 @@ sudo systemctl disable lora_pkt_fwd 2>/dev/null || true
 
 # MODIFIED: Added 'git' to the apt install list, and changed $HOME to $USER_HOME
 echo "[+] Installing Dependencies and Rust..."
+sudo python3 -m pip install lxmf --break-system-packages
+sudo python3 -m pip install RNS --break-system-packages
 sudo apt update && sudo apt install -y build-essential clang libclang-dev bc git
 if ! command -v cargo &> /dev/null; then
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
