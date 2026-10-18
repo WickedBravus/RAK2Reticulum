@@ -139,7 +139,7 @@ sudo systemctl status lora-bridge
 
 ---
 ## SX1302 HAL Compatibility Fix
-The RAK Indoor Miner 2.0 does not include the STTS751 temperature sensor expected by parts of the standard Semtech SX1302 HAL. This can cause initialization failures or segmentation faults. Our installer patches the HAL to simulate a temperature reading and provide basic pointer checks. It also compiles and injects the missing tinymt32.o object into libloragw.a to resolve a build dependency. The modified HAL is stored in this repository and rebuilt during installation.
+The RAK Indoor Miner 2.0 does not include the STTS751 temperature sensor expected by parts of the standard Semtech SX1302 HAL. This can cause initialization failures or segmentation faults. Our installer patches the HAL to simulate a temperature reading and provide basic pointer checks. It also compiles and injects the missing tinymt32.o object into libloragw.a to resolve a build dependency. The modified HAL is stored in this repository and rebuilt during installation. On a side note, this software will drop any Reticulum packet exceeding 255 Bytes (by-design) as it exceeds the maximum LoRa can transmit.
 
 
 <img width="1085" height="266" alt="image" src="https://github.com/user-attachments/assets/cadbff7a-4b85-432c-95e2-62e5294235fb" />
