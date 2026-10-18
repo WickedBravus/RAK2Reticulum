@@ -60,6 +60,7 @@ chmod +x install.sh
 - **Coding Rate:** Typically `1` (which maps to 4/5).
 
 In Rome, Italy, multiple Reticulum Nodes are running this configuration, so just replicate your neighbors so their devices can engage with your setup:
+
 <img width="388" height="246" alt="image" src="https://github.com/user-attachments/assets/30345972-b394-467b-8680-f048c31511be" />
 
 ### 4. Configure Reticulum
@@ -140,7 +141,9 @@ sudo systemctl status lora-bridge
 ## SX1302 HAL Compatibility Fix
 The RAK Indoor Miner 2.0 does not include the STTS751 temperature sensor expected by parts of the standard Semtech SX1302 HAL. This can cause initialization failures or segmentation faults. Our installer patches the HAL to simulate a temperature reading and provide basic pointer checks. It also compiles and injects the missing tinymt32.o object into libloragw.a to resolve a build dependency. The modified HAL is stored in this repository and rebuilt during installation.
 
-<img width="1149" height="267" alt="image" src="https://github.com/user-attachments/assets/e953233e-ec0a-4285-afaa-20f9c9c2c661" />
+
+<img width="1085" height="266" alt="image" src="https://github.com/user-attachments/assets/cadbff7a-4b85-432c-95e2-62e5294235fb" />
+
 
 ## ⚠️ CRITICAL SAFETY WARNING
 **NEVER power on your Raspberry Pi and RAK HAT without an antenna firmly attached.** 
