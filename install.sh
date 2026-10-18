@@ -16,7 +16,7 @@ echo "================================================="
 read -p "Enter Frequency (e.g., 869.525): " FREQ_IN
 read -p "Enter Bandwidth in kHz (125, 250, 500): " BW_IN
 read -p "Enter Spreading Factor (7, 8, 9, 10, 11, 12): " SF_IN
-read -p "Enter Coding Rate (type 1 for 4/5): " CR_IN
+read -p "Enter Coding Rate (type 1 for 4/5, 2=4/6, 3=4/7, 4=4/8): " CR_IN
 
 # Format parameters for Rust injection
 #FREQ_HZ=$(echo "$FREQ_IN * 1000000" | bc | cut -d. -f1)
