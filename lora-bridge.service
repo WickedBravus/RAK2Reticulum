@@ -4,10 +4,10 @@ After=network.target rnsd.service
 
 [Service]
 Type=simple
-User=root
-WorkingDirectory=/home/brevus/RAK2Reticulum
+User=__USER__
+WorkingDirectory=__DIR__
 
-# Universal Hardware reset sequence (Covers both RAK hardware variants)
+# Universal Hardware reset sequence (GPIO 17 & 25)
 ExecStartPre=/usr/bin/pinctrl set 17 op dh
 ExecStartPre=/usr/bin/pinctrl set 25 op dh
 ExecStartPre=/bin/sleep 0.2
@@ -16,11 +16,11 @@ ExecStartPre=/usr/bin/pinctrl set 25 op dl
 ExecStartPre=/bin/sleep 0.2
 
 # Main Executable
-ExecStart=/home/brevus/RAK2Reticulum/target/release/rns-rak-native
+ExecStart=__DIR__/target/release/rns-rak-native
 Restart=always
-RestartSec=5
+RestartSec=3
 
-# Diagnostics (Uncomment when tracking crashes)
+# Diagnostics (Uncomment when tracking C-driver crashes)
 # Environment="RUST_BACKTRACE=full"
 
 [Install]
