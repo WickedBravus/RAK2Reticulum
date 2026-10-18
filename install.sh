@@ -75,12 +75,65 @@ cd "$REPO_DIR/sx1302_hal"
 make clean || true
 make
 
-echo "[+] Applying Patch 1: Injecting missing tinymt32 object..."
-TINY_DIR=$(dirname $(find "$REPO_DIR/sx1302_hal" -name "tinymt32.c" | head -n 1))
-cd "$TINY_DIR"
-gcc -c tinymt32.c -o tinymt32.o
-ar rs "$REPO_DIR/sx1302_hal/libloragw/libloragw.a" tinymt32.o
+#############
+#echo "[+] Applying Patch 1: Injecting missing tinymt32 object..."
+#TINY_SRC_DIR=$(dirname $(find "$REPO_DIR/sx1302_hal" -name "tinymt32.c" | head -n 1))
+#HEADER_DIR=$(dirname $(find "$REPO_DIR/sx1302_hal" -name "tinymt32.h" | head -n 1))
 
+#cd "$TINY_SRC_DIR"
+#gcc -I "$HEADER_DIR" -c tinymt32.c -o tinymt32.o
+#ar rs "$REPO_DIR/sx1302_hal/libloragw/libloragw.a" tinymt32.o
+
+echo "[+] Applying Patch 1: Injecting missing tinymt32 object..."
+
+HAL_DIR="$REPO_DIR/sx1302_hal"
+LIB_PATH="$HAL_DIR/libloragw/libloragw.a"
+
+# Locate the source and header files.
+TINY_SRC=$(find "$HAL_DIR" -type f -name "tinymt32.c" -print -quit)
+TINY_HDR=$(find "$HAL_DIR" -type f -name "tinymt32.h" -print -quit)
+
+# Verify that both files exist.
+if [ -z "$TINY_SRC" ]; then
+    echo "[ERROR] tinymt32.c not found under $HAL_DIR"
+    exit 1
+fi
+
+if [ -z "$TINY_HDR" ]; then
+    echo "[ERROR] tinymt32.h not found under $HAL_DIR"
+    exit 1
+fi
+
+if [ ! -f "$LIB_PATH" ]; then
+    echo "[ERROR] HAL library not found: $LIB_PATH"
+    exit 1
+fi
+
+TINY_SRC_DIR=$(dirname "$TINY_SRC")
+HEADER_DIR=$(dirname "$TINY_HDR")
+
+# Compile the missing object.
+gcc -I "$HEADER_DIR" -c "$TINY_SRC" -o "$TINY_SRC_DIR/tinymt32.o" || {
+    echo "[ERROR] Failed to compile tinymt32.c"
+    exit 1
+}
+
+# Inject the object into the HAL static library.
+ar rs "$LIB_PATH" "$TINY_SRC_DIR/tinymt32.o" || {
+    echo "[ERROR] Failed to update $LIB_PATH"
+    exit 1
+}
+
+echo "[+] tinymt32 object successfully injected into libloragw.a"
+#############
+
+echo "[+] Applying Patch 1: Injecting missing tinymt32 object..."
+TINY_SRC_DIR=$(dirname $(find "$REPO_DIR/sx1302_hal" -name "tinymt32.c" | head -n 1))
+HEADER_DIR=$(dirname $(find "$REPO_DIR/sx1302_hal" -name "tinymt32.h" | head -n 1))
+
+cd "$TINY_SRC_DIR"
+gcc -I "$HEADER_DIR" -c tinymt32.c -o tinymt32.o
+ar rs "$REPO_DIR/sx1302_hal/libloragw/libloragw.a" tinymt32.o
 echo "[+] Applying Patch 2: STTS751 hardware spoof & idle segfault guard..."
 cd "$REPO_DIR/sx1302_hal/libloragw"
 cat << 'TEMP_EOF' > fake_temp.c
