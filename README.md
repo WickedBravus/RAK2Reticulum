@@ -1,6 +1,7 @@
 # RAK2Reticulum 📡
 
 **Native Rust LoRa Bridge for Reticulum Network (SX1302 / SX1250)**
+
 **Off-Grid End-to-End Encrypted Decentralized Network for Instant Messaging and Telecommunications**
 
 RAK2Reticulum is a lightweight, pure-Rust native bridge designed to directly interface industrial RAKwireless LoRa Base Stations with the [Reticulum Network](https://reticulum.network/). 
