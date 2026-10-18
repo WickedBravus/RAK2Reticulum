@@ -1,6 +1,6 @@
 [package]
 name = "rns-rak-native"
-version = "2026.0.1.5"
+version = "0.1.5"
 edition = "2024"
 
 [dependencies]
