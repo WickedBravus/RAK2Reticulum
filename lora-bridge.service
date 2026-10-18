@@ -7,9 +7,11 @@ Type=simple
 User=root
 WorkingDirectory=/home/brevus/RAK2Reticulum
 
-# Hardware reset sequence on GPIO 25
+# Universal Hardware reset sequence (Covers both RAK hardware variants)
+ExecStartPre=/usr/bin/pinctrl set 17 op dh
 ExecStartPre=/usr/bin/pinctrl set 25 op dh
 ExecStartPre=/bin/sleep 0.2
+ExecStartPre=/usr/bin/pinctrl set 17 op dl
 ExecStartPre=/usr/bin/pinctrl set 25 op dl
 ExecStartPre=/bin/sleep 0.2
 
@@ -17,6 +19,9 @@ ExecStartPre=/bin/sleep 0.2
 ExecStart=/home/brevus/RAK2Reticulum/target/release/rns-rak-native
 Restart=always
 RestartSec=5
+
+# Diagnostics (Uncomment when tracking crashes)
+# Environment="RUST_BACKTRACE=full"
 
 [Install]
 WantedBy=multi-user.target
