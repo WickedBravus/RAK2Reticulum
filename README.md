@@ -6,7 +6,9 @@
 
 RAK2Reticulum is a lightweight, pure-Rust native bridge designed to directly interface industrial RAKwireless LoRa Base Stations with the [Reticulum Network](https://reticulum.network/). 
 
-I used RAK Hotspot V2.0 Indoor with a fresh Pi OS Debian 13 Trixie install, my goal was to repurpose a capable piece of hardware that was sitting and collecting dust into something meaningful for the RF community.
+This project aims to repurpose RAK Hotspot V2.0 Indoor Helium Miners via a fresh Raspberry Pi OS (Debian 13 Trixie) installation. By transforming a highly capable piece of hardware that was sitting and collecting dust on your desk into something meaningful for the RF community, we can breathe new life into existing tech. 
+
+Our cities are oversaturated with dormant RAK Miners. If even a small percentage of those users turned their dusty miners into Reticulum gateways, entire cities could securely bypass ISPs and cloud-based instant messengers.
 
 By bypassing traditional, bloated LoRaWAN packet forwarders and bridging natively via UDP, this software transforms standard Raspberry Pi + RAK HAT setups into high-power, high-bandwidth Reticulum mesh routers capable of coordinating city-wide infrastructure.
 
