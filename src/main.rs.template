@@ -69,7 +69,7 @@ fn main() {
                         let hex_payload: String = payload_slice.iter().map(|b| format!("{:02x}", b)).collect();
                         
                         println!("[RX] RSSI: {:.1} dBm | SNR: {:.1} dB | Len: {} bytes", pkt.rssic, pkt.snr, safe_size);
-                        println!("    => Payload: {}", hex_payload);
+                        //println!("    => Payload: {}", hex_payload);
 
                         socket.send_to(payload_slice, rnsd_addr).ok();
                     }
@@ -100,7 +100,7 @@ fn main() {
                         let tx_payload_slice = &buf[..size];
                         let hex_payload: String = tx_payload_slice.iter().map(|b| format!("{:02x}", b)).collect();
                         println!("[TX] Len: {} bytes", size);
-                        println!("    => Payload: {}", hex_payload);
+                        //println!("    => Payload: {}", hex_payload);
                         
                         // Dynamic ToA Hardware Lock
                         let delay_ms = (size as u64 * 3) + 50;
