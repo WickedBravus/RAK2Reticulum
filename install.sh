@@ -1,6 +1,13 @@
 #!/bin/bash
 set -e
 
+# 1. NEW: PROPER USER AND DIRECTORY FETCHING
+# Capture the invoking non-root user and absolute repository directory
+# so paths and permissions are correct even when executed via sudo.
+REAL_USER="${SUDO_USER:-$USER}"
+USER_HOME=$(eval echo "~${REAL_USER}")
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 echo "================================================="
 echo "   RAK2Reticulum Base Station Installer"
 echo "================================================="
@@ -26,7 +33,7 @@ sed -e "s/{{FREQ_HZ}}/${FREQ_HZ}/g" \
     -e "s/{{BW_VAL}}/${BW_VAL}/g" \
     -e "s/{{SF_VAL}}/${SF_IN}/g" \
     -e "s/{{CR_VAL}}/${CR_IN}/g" \
-    src/main.rs.template > src/main.rs
+    "$REPO_DIR/src/main.rs.template" > "$REPO_DIR/src/main.rs"
 
 echo "[+] Stopping any active bridge services..."
 sudo systemctl stop lora-bridge 2>/dev/null || true
@@ -42,41 +49,83 @@ sudo systemctl disable chirpstack-gateway-bridge 2>/dev/null || true
 sudo systemctl stop lora_pkt_fwd 2>/dev/null || true
 sudo systemctl disable lora_pkt_fwd 2>/dev/null || true
 
+# MODIFIED: Added 'git' to the apt install list, and changed $HOME to $USER_HOME
 echo "[+] Installing Dependencies and Rust..."
-sudo apt update && sudo apt install -y build-essential clang libclang-dev bc
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-source $HOME/.cargo/env
+sudo apt update && sudo apt install -y build-essential clang libclang-dev bc git
+if ! command -v cargo &> /dev/null; then
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+    source "$USER_HOME/.cargo/env"
+fi
+
+# ==============================================================================
+# 2. NEW: THE SEMTECH HAL VENDORING & PATCHES
+# ==============================================================================
+if [ ! -d "$REPO_DIR/sx1302_hal" ]; then
+    echo "[+] sx1302_hal not found. Cloning official Semtech driver..."
+    git clone https://github.com/Lora-net/sx1302_hal.git "$REPO_DIR/sx1302_hal"
+    rm -rf "$REPO_DIR/sx1302_hal/.git"
+fi
+
+echo "[+] Compiling base sx1302_hal..."
+cd "$REPO_DIR/sx1302_hal"
+make clean || true
+make
+
+echo "[+] Applying Patch 1: Injecting missing tinymt32 object..."
+TINY_DIR=$(dirname $(find "$REPO_DIR/sx1302_hal" -name "tinymt32.c" | head -n 1))
+cd "$TINY_DIR"
+gcc -c tinymt32.c -o tinymt32.o
+ar rs "$REPO_DIR/sx1302_hal/libloragw/libloragw.a" tinymt32.o
+
+echo "[+] Applying Patch 2: STTS751 hardware spoof & idle segfault guard..."
+cd "$REPO_DIR/sx1302_hal/libloragw"
+cat << 'TEMP_EOF' > fake_temp.c
+#include <stddef.h>
+
+int stts751_configure(void) { 
+    return 0; 
+}
+
+int stts751_get_temperature(float * temp) { 
+    if (temp == NULL || (unsigned long)temp < 0x1000) {
+        return -1; 
+    }
+    *temp = 30.0; 
+    return 0; 
+}
+TEMP_EOF
+gcc -c fake_temp.c -o loragw_stts751.o
+ar rs libloragw.a loragw_stts751.o
+# ==============================================================================
 
 echo "[+] Compiling Native Bridge (This takes a few minutes)..."
+cd "$REPO_DIR"
 cargo build --release
 
+# ==============================================================================
+# 3. NEW: RETICULUM CONFIG AUTO-DEPLOYMENT
+# ==============================================================================
+RETICULUM_DIR="$USER_HOME/.reticulum"
+sudo -u "${REAL_USER}" mkdir -p "$RETICULUM_DIR"
+
+if [ -f "$RETICULUM_DIR/config" ]; then
+    echo "[+] Backing up existing Reticulum config to config.bak..."
+    cp "$RETICULUM_DIR/config" "$RETICULUM_DIR/config.bak"
+fi
+
+echo "[+] Deploying RAK2Reticulum interface configuration..."
+cp "$REPO_DIR/reticulum-config.example" "$RETICULUM_DIR/config"
+chown -R "${REAL_USER}:${REAL_USER}" "$RETICULUM_DIR"
+# ==============================================================================
+
+# ==============================================================================
+# 4. NEW: DYNAMIC SYSTEMD TEMPLATE GENERATION
+# Replaces the hardcoded 'cat << SVC_EOF' block so the service runs as the safe user
+# ==============================================================================
 echo "[+] Generating Systemd Service with Universal Reset (GPIO 17 & 25)..."
-cat << SVC_EOF | sudo tee /etc/systemd/system/lora-bridge.service > /dev/null
-[Unit]
-Description=Native RAK LoRa Bridge
-After=network.target rnsd.service
-
-[Service]
-Type=simple
-User=root
-WorkingDirectory=$PWD
-
-# Universal Hardware reset sequence (Covers both RAK hardware variants)
-ExecStartPre=/usr/bin/pinctrl set 17 op dh
-ExecStartPre=/usr/bin/pinctrl set 25 op dh
-ExecStartPre=/bin/sleep 0.2
-ExecStartPre=/usr/bin/pinctrl set 17 op dl
-ExecStartPre=/usr/bin/pinctrl set 25 op dl
-ExecStartPre=/bin/sleep 0.2
-
-# Main Executable
-ExecStart=$PWD/target/release/rns-rak-native
-Restart=always
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target
-SVC_EOF
+sed -e "s|__USER__|${REAL_USER}|g" \
+    -e "s|__DIR__|${REPO_DIR}|g" \
+    "$REPO_DIR/lora-bridge.service.template" | sudo tee /etc/systemd/system/lora-bridge.service > /dev/null
 
 echo "[+] Starting Base Station..."
 sudo systemctl daemon-reload
