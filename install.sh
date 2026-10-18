@@ -191,8 +191,14 @@ sed -e "s|__USER__|${REAL_USER}|g" \
     "$REPO_DIR/lora-bridge.service.template" | sudo tee /etc/systemd/system/lora-bridge.service > /dev/null
 
 echo "[+] Starting Base Station..."
+
+echo "[+] Enabling and starting Reticulum (rnsd) daemon..."
+sudo systemctl enable --now rnsd
+
+echo "[+] Starting RAK LoRa Bridge..."
 sudo systemctl daemon-reload
 sudo systemctl enable --now lora-bridge
+
 
 echo "================================================="
 echo "[SUCCESS] Base Station Deployed and Hardware Awake!"
